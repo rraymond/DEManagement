@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>NEED TITLE AND DESC</title>
+        <meta name="description" content="NEED A DESCRIPTION">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="css/management2.css" type="text/css">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function(){
+            var elm;
+            var notify = {
+              
+               create: function(message, type, ms){
+                    elm = document.createElement('div');
+                    elm.setAttribute('class', 'userNotification ' + type);
+                    elm.innerHTML = message; 
+
+                    //'<div class="userNotification ' + type + '">' + message + '</div>';
+                    $('#userNotificationContainer').append(elm);
+               },
+
+               center: function(){
+                    var windowWidth = $(window).width(),
+                          noteWidth = $('#userNotificationContainer').outerWidth(true),
+                        offSetWidth = (windowWidth - noteWidth) / 2;
+                    $('#userNotificationContainer').css('left', offSetWidth);
+               },
+
+               bindClick: function(){
+                    $(elm).one('click', function(){
+                        $(this).fadeOut(250, function(){$(this).remove()});
+                    })
+               },
+
+               bindTime: function(){
+                    alert('timing goes here')
+               },
+
+               init: function(message, type){
+                    this.create(message, type);
+                    this.center();
+                    this.bindClick();
+               }
+
+            }
+
+            var ajaxStart = {
+              
+              show: function(){
+                $('#mask').show();
+                $('#loading').show();
+              },
+
+              addText: function(text){
+                $('#loading p').html(text);
+              },
+              
+              center: function(){
+                   var windowWidth = $(window).width(),
+                         loadWidth = $('#loading').outerWidth(true),
+                       offSetWidth = (windowWidth - loadWidth) / 2;
+                   $('#loading').css('left', offSetWidth);
+              },
+              
+              init: function(text){
+                this.addText(text);
+                this.center();
+                this.show();
+              }
+
+            }
+
+            var ajaxStop = {
+              
+              hideMask: function(){
+                $('#mask').hide();
+              },
+
+              hideLoading: function(){
+                $('#loading p').html('');
+                $('#loading').hide();
+              },
+
+              init: function(){
+                setTimeout(this.hideLoading, 750);
+                setTimeout(this.hideMask, 850);
+                
+              }
+
+            }
+
+           $.fn.serializeObject = function()
+            {
+               var o = {};
+               var a = this.serializeArray();
+               $.each(a, function() {
+                   if (o[this.name]) {
+                       if (!o[this.name].push) {
+                           o[this.name] = [o[this.name]];
+                       }
+                       o[this.name].push(this.value || '');
+                   } else {
+                       o[this.name] = this.value || '';
+                   }
+               });
+               return o;
+            }; 
+            $(document).ajaxError(function(event, request, settings, thrownError){
+                var statusCode = request.status,
+                    errorType  = event.type,
+                    timeStamp  = event.timeStamp,
+                    statusText = request.statusText,
+                    url        = settings.url,
+                    method     = settings.type,
+                    data       = settings.data,
+                   thrownError = thrownError;
+    
+                //convert date to real date
+                timeStamp = new Date(timeStamp);
+                timeStamp = timeStamp.toDateString();
+
+                console.log(statusCode);
+                console.log(errorType);
+                console.log(timeStamp);
+                console.log(statusText);
+                console.log(url);
+                console.log(method);
+                console.log(data);
+                console.log(thrownError);
+
+                notify.init(statusText + ' ' + statusCode + ' just happened...check the console', 'error');
+            });
+            function callMethod(service, data, method, successMethod){
+                $.ajax({
+                    type: method,  
+                    url: "http://www.deserteaglebrewery.com.asp1-28.dfw1-2.websitetestlink.com/BeerRESTService.svc/" + service,
+                    async: false,  
+                    data: data,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(resp){  
+                        // we have the response 
+                        successMethod(JSON.stringify(resp));
+                    }  
+                });
+            }
+
+            function logIn(formElm){
+                var info = $(formElm).serializeObject();
+                //info = '{"username":"Scott", "password":"Sarver"}';
+                console.log(JSON.stringify(info));
+                callMethod('validateCredentials', JSON.stringify(info), 'POST', checkLogin);
+            }
+
+            function checkLogin(obj){
+              var valid = jQuery.parseJSON(obj);
+              
+              if(valid.ValidateCredentialsResult === true){
+                notify.init("You are a valid user", 'pass');
+              }else{
+                notify.init("You best check your credentials and try again mofo", 'error');
+              }
+            }
+           
+            
+
+            $(document).ajaxStart(function(){
+                ajaxStart.init('Working...');
+            })
+
+             $(document).ajaxStop(function(){
+                ajaxStop.init();
+            })
+
+
+
+
+            $('.forgetPassword').on('click', function(e){
+                e.preventDefault();
+                notify.init('Too bad, so sad', 'error')
+            })
+            $('#loginForm').on('submit', function(e){
+                e.preventDefault();
+                logIn($('#loginForm'));
+            });
+        });
+        </script>
+    </head>
+    <body>
+        <div id="mask"></div>
+        <div id="loading">
+          <img src="image/loading.gif" />
+          <p></p>
+        </div>
+        <div id="wrapper-page">
+            <div id="userNotificationContainer">
+                <!--elements added by javascript -->
+            </div>
+            <header>
+                <img class="logo" src="image/logo.gif"/>
+                <span class="logout"><a href="#" class="btn">Logout</a></span>
+            </header>
+            <section class="panel">
+                <form id="loginForm" class="coloredBlock">
+                    <label for="username">User Name:</label>
+                    <input type="email" id="username" name="username" placeholder="Type in your user name" required />
+                    
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required />
+                    
+                    <input class="btn" type="submit" id="loginBtn" name="loginBtn" value='Sign in' />
+                    <a href="#" class="forgetPassword block">Forget your password?</a>
+                </form>
+            </section>
+            <aside class="panel">
+                <h1>Desert Eagle Brewery</h1>
+                <h3>Website Mangement System</h3>
+                <p>You can update your active beer list that will display on the Desert Eagle Website</p>
+                <p>You will be able to do the following:</p>
+                <ul>
+                    <li>Add/Remove beers from showing on your website</li>
+                    <li>Update content related to your beers</li>
+                    <li>Add/Remove users?</li>
+                </ul>
+            </aside>
+            
+        </div>
+    </body>
+</html>

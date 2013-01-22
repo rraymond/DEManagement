@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+    <head>
+        <title>Gettin' Some Beers</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function(){
+            
+            function getBeers(service, data, method){
+                var totalResponse = '';
+                console.log('here is the data being sent to the server: ' + data)
+                $.ajax({
+                    type: method,  
+                    url: "http://www.deserteaglebrewery.com.asp1-28.dfw1-2.websitetestlink.com/BeerRESTService.svc/" + service,  
+                    data: data,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(resp){  
+                        // we have the response 
+                        $('#response').html(JSON.stringify(resp));
+                    },
+                    error: function(e){  
+                        totalResponse = 'Error: ' + e;  
+                    }  
+                });
+            }
+
+            $('button').on('click', function(){
+                $('#response').html("");
+                getBeers($('#serviceToCall').val(), $('#jsonData').val(), $('#method').val());
+            });
+        });
+        </script>
+    </head>
+    <body>
+        <label>Service to call (just service):&nbsp;</label><input type="text" id="serviceToCall"><br>
+        <label>Formatted JSON:&nbsp;</label><textarea id="jsonData"></textarea><br>
+        <label>Method</label>
+        <select id="method">
+            <option value="GET" selected>GET</option>
+            <option value="POST">POST</option>
+            <option value="DELETE">DELETE</option>
+            <option value="PUT">PUT</option>
+        </select>
+        <button>Go Get Some Beers</button><br>
+        <div id="response">FYC</div>
+    </body>
+</html>
